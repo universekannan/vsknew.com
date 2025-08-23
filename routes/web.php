@@ -43,7 +43,8 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('/save_barcode', 'App\Http\Controllers\ProductsController@save_barcode');
     Route::get('/products', 'App\Http\Controllers\ProductsController@manageProducts');
     Route::get('get-subcategories/{catId}', 'App\Http\Controllers\ProductsController@getSubcategories');
-
+    Route::post('/update_product', [App\Http\Controllers\ProductsController::class, 'updateproduct'])->name('update.product');
+    
     Route::get('/productpagination/fetch_data',  'App\Http\Controllers\ProductsController@fetch_data');
     Route::get('/products/banner/{id}', 'App\Http\Controllers\ProductsController@manageBanner');
 
@@ -61,7 +62,6 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('/cancel_purchase', 'App\Http\Controllers\ProductsController@cancel_purchase');
     Route::post('/order', 'App\Http\Controllers\ProductsController@Order');
     Route::post('/stock', 'App\Http\Controllers\ProductsController@Stock');
-    Route::post('/updatemoreinfo', 'App\Http\Controllers\ProductsController@updatemoreinfo');
      Route::get('/newbill', 'App\Http\Controllers\BillController@manageBill');
      Route::get('/billdetails/{from}/{to}', 'App\Http\Controllers\BillController@billdetails');
      Route::get('/viewbill/{id}', 'App\Http\Controllers\BillController@viewbill');

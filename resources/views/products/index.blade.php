@@ -123,11 +123,9 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-
-            <form method="POST" action="{{ url('updateMoreInfo') }}">
+            <form method="POST" action="{{ url('/update_product') }}">
                 @csrf
                 <input type="hidden" id="productid" name="product_id" value="{{ $product->product_id }}" />
-
                 <div class="modal-body">
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">
@@ -222,7 +220,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

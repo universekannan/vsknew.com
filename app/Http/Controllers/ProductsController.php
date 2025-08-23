@@ -84,22 +84,24 @@ class ProductsController extends BaseController
 	}
 
 
-	public function updatemoreinfo(Request $request){
-		$category_id = $request->sub_cat_id;
-	DB::table('products')->where('product_id',$request->product_id)->update([
-	   'product_name'               =>   $request->product_name,
-       'category_id'                =>   $category_id,
-	   'description'                =>   $request->description,
-       'short_description'          =>   $request->short_description,
-	   'price'                      =>   $request->price,
-	   'mrp'                        =>   $request->mrp,
-	   'buying_price'               =>   $request->buying_price,
-	   'discount_price'             =>   $request->discount_price,
-	   'discount_price_min_weight'  =>   $request->weight,
-	   'status'                     =>   $request->status,
+	public function updateproduct(Request $request)
+	{
 
-	 ]);
-	  return redirect()->back(); 
+		DB::table('products')->where('product_id', $request->product_id)->update([
+			'product_name'               => $request->product_name,
+			'category_id'                => $request->sub_cat_id,
+			'description'                => $request->description,
+			'short_description'          => $request->short_description,
+			'price'                      => $request->price,
+			'mrp'                        => $request->mrp,
+			'buying_price'               => $request->buying_price,
+			'discount_price'             => $request->discount_price,
+			'discount_price_min_weight'  => $request->weight,
+			'status'                     => $request->status,
+			'date_modified'              =>now(),
+		]);
+		
+	 return redirect()->back()->with('success', 'Product updated successfully!');
 	}
 	
 	public function generateBarcode($id){

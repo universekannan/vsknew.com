@@ -1,96 +1,112 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<!doctype html>
+<html lang="en">
 
-        <title>VSK Brothers</title>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>VSK Brothers Supermarket</title>
 
-        <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;600&display=swap" rel="stylesheet">
+<meta name="description" content="Shopping online at Vsk Brothers for fresh groceries, vegetables, fruits, dairy, and daily essentials. Fast home delivery, top quality products, and unbeatable prices.">
 
-        <!-- Styles -->
-        <style>
-            html, body {
-                background-color: #fff;
-                color: #636b6f;
-                font-family: 'Nunito', sans-serif;
-                font-weight: 200;
-                height: 100vh;
-                margin: 0;
-            }
+<meta name="keywords" content="VSK Brothers online grocery | Kanyakumari grocery store | Nagercoil grocery delivery | Online grocery delivery Kanyakumari | Best supermarket in Nagercoil | Fresh grocery home delivery | Buy vegetables online Kanyakumari | Fruits and vegetables delivery Nagercoil| Daily needs store in Kanyakumari| Organic grocery store Kanyakumari | Local grocery shop near me | Fast grocery delivery Nagercoil | Household items online | Groceries at best prices | Grocery shopping app Kanyakumari | Online kirana store Tamil Nadu | VSK Brothers home delivery | Online supermarket offers | Monthly grocery packs | Budget-friendly grocery shopping | Best deals on groceries | Online supermarket Tamil Nadu | Grocery deals Nagercoil | Home essentials delivery | Instant grocery delivery | Hyperlocal supermarket" />
 
-            .full-height {
-                height: 100vh;
-            }
+<meta name="condect" content="8870559164" />
+<meta name="adders" content="VSK Brothers Nr Pilaiyaar temple, Nr Amman Marriage Hall, Peyankuzhi PO, Tamil Nadu 629809" />
+<meta name="link" content="https://vskbrothers.com/" />
+<meta name="map" content="https://share.google/WgS5towsenxOwdsz1" />
+<link rel="icon" href="assets/img/VSK_Brothers.jpg" />
+<meta name="twitter:image" content="assets/img/VSK_Brothers.jpg" />
+<meta property="og:image" content="assets/img/VSK_Brothers.jpg" />
+<link rel="apple-touch-icon" href="assets/img/VSK_Brothers.jpg">
+<meta name="author" content="Galaxy Kannan" />
+<meta name="copyright" content="Galaxy Technology Park Inc" />
+<link rel="stylesheet" href="assets/css/style5e1f.css?v=2">
+</head>
 
-            .flex-center {
-                align-items: center;
-                display: flex;
-                justify-content: center;
-            }
+<body>
 
-            .position-ref {
-                position: relative;
-            }
 
-            .top-right {
-                position: absolute;
-                right: 10px;
-                top: 18px;
-            }
+    <div class="hero">
+        <div class="container">
 
-            .content {
-                text-align: center;
-            }
+            <!-- content -->
+            <div class="textContent">
 
-            .title {
-                font-size: 84px;
-            }
+                <div class="hero-header">
+                    <div class="itemLogo">
+                        <img src="assets/img/logo.webp" alt="logo" class="image">
+                    </div>
+                </div>
 
-            .links > a {
-                color: #636b6f;
-                padding: 0 25px;
-                font-size: 13px;
-                font-weight: 600;
-                letter-spacing: .1rem;
-                text-decoration: none;
-                text-transform: uppercase;
-            }
 
-            .m-b-md {
-                margin-bottom: 30px;
-            }
-        </style>
-        <!-- PWA  -->
-        <meta name="theme-color" content="#6777ef"/>
-        <link rel="apple-touch-icon" href="{{ asset('public/logo.png') }}">
-        <link rel="manifest" href="{{ asset('public/manifest.json') }}">
-    </head>
-    <body>
-        <div class="flex-center position-ref full-height">
-              <div class="top-right links">
-                        <a href="{{ url('/dashboard') }}">Home</a>
-                        <a href="{{ url('login') }}">Login</a>
- 
-                     @if (Route::has('register'))
-                            <a href="{{ route('register') }}">Register</a>
-                        @endif 
-                </div> 
+                <h1 class="heroTitle">
+                    VSK Brothers
+                </h1>
+                <div class="hero-content">
+                    <ul class="heroList">
+                        <li>
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                            VSK Brothers
+                        </li>
+                        <li>
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                            Nr Pilaiyaar temple,
+                        </li>
+                        <li>
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                            Nr Amman Marriage Hall,
+                        </li>
+                        <li>
+                            <ion-icon name="checkmark-outline"></ion-icon>
+                                Peyankuzhi PO, Tamil Nadu 629809.
+                        </li>
+                        <li>
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                           Phone : <a href="tel:+91 8870559164"> 8870559164</a>
+                        </li>
+                        <li>
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                            Email : <a href="mailto:vskbrothers@gmail.com">vskbrothers@gmail.com</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="buttonWrapper">
+                    <a href="https://play.google.com/store/apps/details?id=com.vskbrothers&hl=en_IN" target="_blank">
+                        <img alt="Get it on Google Play"
+                             src="assets/img/pngegg.png"
+                             style="height: 250px;" />
+                    </a>                    
+                    <img src="assets/img/qr1.png" alt="qr" class="qr" style="width: 150px;">
+                </div>
 
-            <div class="content">
-                <div class="title m-b-md">
-                    <a href="{{ url('login') }}"><img src="{{ URL::to('/') }}/logo.png" ></a>
+
+
+            </div>
+            <!-- content -->
+
+            <!-- phone -->
+            <div class="phoneContent">
+                <div class="phoneWrapper">
+                    <div class="in">
+                        <iframe class="getFrame" src="https://app.vskbrothers.com/" frameborder="0"></iframe>
+                    </div>
                 </div>
             </div>
+            <!-- phone -->
+
+
+
         </div>
-        <script src="{{ asset('public/sw.js') }}"></script>
-        <script>
-            if (!navigator.serviceWorker.controller) {
-                navigator.serviceWorker.register("public/sw.js").then(function (reg) {
-                    console.log("Service worker has been registered for scope: " + reg.scope);
-                });
-            }
-        </script>
-    </body>
+
+    </div>
+    <!-- * hero -->
+
+
+    
+
+ 
+    <script src="assets/js/lib/jquery-3.4.1.min.js"></script>
+    <script src="assets/js/app5e1f.js?v=2"></script>
+
+</body>
 </html>
