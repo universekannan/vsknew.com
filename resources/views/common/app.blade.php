@@ -602,26 +602,26 @@ $('.typeahead').typeahead().bind('typeahead:close', function () {
 
 
 </script>
-// <script>
+<script>
 
-//  function delete_row(row){
-//   $("#addr"+(row)).html('');
-//   i--;
-//   var total_amount=0;
-//   var gst_amount3=0;
-//   var net_amount=0;
-//   var item_amount = $('input[name="total_amount[]"]');
-//   var gst_amount4 = $('input[name="gst_amount2[]"]');
-//   for(var j=0;j<i;j++){
-//     total_amount=total_amount+parseInt(item_amount.eq(j).val());
-//     gst_amount3=gst_amount3+parseInt(gst_amount4.eq(j).val());
-//   }
-//   $('#total_amount').val(total_amount);
-//   $('#gat_amount5').val(gst_amount3.toFixed(2));
-//   net_amount = total_amount + gst_amount3;
-//   $('#net_amount').val(net_amount.toFixed(2));
-// }
-// </script>
+ function delete_row(row){
+  $("#addr"+(row)).html('');
+  i--;
+  var total_amount=0;
+  var gst_amount3=0;
+  var net_amount=0;
+  var item_amount = $('input[name="total_amount[]"]');
+  var gst_amount4 = $('input[name="gst_amount2[]"]');
+  for(var j=0;j<i;j++){
+    total_amount=total_amount+parseInt(item_amount.eq(j).val());
+    gst_amount3=gst_amount3+parseInt(gst_amount4.eq(j).val());
+  }
+  $('#total_amount').val(total_amount);
+  $('#gat_amount5').val(gst_amount3.toFixed(2));
+  net_amount = total_amount + gst_amount3;
+  $('#net_amount').val(net_amount.toFixed(2));
+}
+</script>
 
 <script>
 
@@ -665,7 +665,7 @@ $('.typeahead').typeahead().bind('typeahead:close', function () {
         bar_code:bar_code,
         _token: CSRF_TOKEN
       },
-      success: function (sales_id) 
+      success: function (response) 
       {
         $("#total_amount").val('');
         $("#gat_amount5").val('');
@@ -674,7 +674,7 @@ $('.typeahead').typeahead().bind('typeahead:close', function () {
           $("#addr"+(j)).html('');
         }
         i = 0;
-        view_bill(sales_id);
+        view_bill(response.bill_id);
       }
     });
   }

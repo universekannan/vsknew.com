@@ -7,8 +7,6 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Config;
-
-
 use App\Models\Core\Setting;
 use App\Models\Admin\Admin;
 use App\Models\Core\Order;
@@ -217,47 +215,68 @@ class ProductsController extends BaseController
 		return redirect('/barcode');
 	}
 
-     public function approve_purchase(Request $request){
+	public function approve_purchase(Request $request)
+	{
 		$shop_id = Auth::user()->shop_id;
-		$created_at = date("Y-m-d H:i:s");
 		$item_id = $request->item_id;
-		$pqty = $request->pqty;
-		$pur_id = $request->pur_id;
-		$created_at = date("Y-m-d");
-		$sql="update purchase set status=1,created_at='$created_at' where id=$pur_id";
-		DB::update($sql);
-		$sql="select * from stock where shop_id=$shop_id and item_id=$item_id";
-		$result = DB::select(DB::raw($sql));
-		if(count($result) > 0){
-		  $sql="update stock set stock=stock+$pqty where shop_id=$shop_id and item_id=$item_id";
-		  DB::update($sql);
-		}else{
-		  $sql = "insert into stock (shop_id,item_id,stock) values ($shop_id,$item_id,$pqty)";
-		  DB::insert($sql);
+		$pqty    = $request->pqty;
+		$pur_id  = $request->pur_id;
+		$created_at = now(); 
+	
+		// ✅ Update purchase status
+		DB::table('purchase')
+			->where('id', $pur_id)
+			->update([
+				'status' => 1,
+				'created_at' => $created_at,
+			]);
+	
+		// ✅ Check if stock exists
+		$stockExists = DB::table('stocks')
+			->where('shop_id', $shop_id)
+			->where('product_id', $item_id)
+			->exists();
+	
+		if ($stockExists) {
+			// Update existing stock
+			DB::table('stocks')
+				->where('shop_id', $shop_id)
+				->where('product_id', $item_id)
+				->increment('stock', $pqty);
+		} else {
+			// Insert new stock
+			DB::table('stocks')->insert([
+				'shop_id' => $shop_id,
+				'product_id' => $item_id,
+				'stock'   => $pqty,
+			]);
 		}
-		$sql="update products set quantity=quantity+$pqty where product_id=$item_id";
-		DB::update($sql);
+	
+		// ✅ Update product quantity
+		DB::table('products')
+			->where('product_id', $item_id)
+			->increment('quantity', $pqty);
+	
+		return response()->json(['success' => true, 'message' => 'Purchase approved successfully']);
 	}
-
+	
 	public function purchase(){
 		$user = Auth::user();
 			$shop_id = $user->shop_id;
 			$user_type = $user->user_type_id;
 
 			// Step 1: Get all active products with name/bar_code
-			$manageproduct = DB::table('products as a')
-				->join('product_description as b', 'a.product_id', '=', 'b.product_id')
-				->select('a.product_id', 'a.quantity', 'a.minimum', 'a.model', 'a.price', 'b.name', 'b.bar_code')
-				->where('a.status', 1)
+			$manageproduct = DB::table('products')
+				->where('status', 1)
 				->get();
 
 			// Step 2: Loop through each product and check if it needs purchasing
 			foreach ($manageproduct as $product) {
 				$product_id = $product->product_id;
 
-				$stock = DB::table('stock')
+				$stock = DB::table('stocks')
 					->where('shop_id', $shop_id)
-					->where('item_id', $product_id)
+					->where('product_id', $product_id)
 					->first();
 
 				if ($stock && $stock->stock < $product->minimum) {
@@ -298,27 +317,48 @@ class ProductsController extends BaseController
 		return view("products.purchase")->with('manageproduct', $manageproduct)->with('shops', $shops)->with('shop_id', $shop_id);
 	}
 
-	public function approve($shop_id){
+	public function approve($shop_id)
+	{
 		$user_type_id = Auth::user()->user_type_id;
-		$sql = "select shop_id,shop_name from users GROUP BY shop_id";
-		if($user_type_id != 1){
-		  $sql = "select shop_id,shop_name from users where shop_id=$shop_id GROUP BY shop_id";
-		}
-		$shops = DB::select(DB::raw($sql));
-		$sql = "select *,c.id as pur_id from products a,product_description b,purchase c where a.product_id=b.product_id and c.shop_id=$shop_id and a.product_id=c.item_id and c.status=0 order by a.product_id";
-		$manageproduct = DB::select(DB::raw($sql));
-		$manageproduct = json_decode(json_encode($manageproduct),true);
-		foreach($manageproduct as $key => $mp){
-		  $item_id = $mp["product_id"];
-		  $manageproduct[$key]["stock"] = 0;
-		  $sql="select * from stock where shop_id=$shop_id and item_id=$item_id";
-		  $res = DB::select(DB::raw($sql));
-		  if(count($res) > 0){
-			$manageproduct[$key]["stock"] = $res[0]->stock;
-		  }
-		}
-		$manageproduct = json_decode(json_encode($manageproduct));
-		return view("products.approve")->with('manageproduct', $manageproduct)->with('shops', $shops)->with('shop_id', $shop_id);
+
+		// Get shops
+		$shopsQuery = DB::table('users')
+			->select('shop_id', 'shop_name')
+			->groupBy('shop_id', 'shop_name');
+
+		if ($user_type_id != 1) {
+			$shopsQuery->where('shop_id', $shop_id);
+		} 
+
+		$shops = $shopsQuery->get();
+
+		// Get manage products
+		$manageproduct = DB::table('products')
+			->join('purchase', function ($join) use ($shop_id) {
+				$join->on('products.product_id', '=', 'purchase.item_id')
+					->where('purchase.shop_id', '=', $shop_id)
+					->where('purchase.status', '=', 0);
+			})
+			->select('products.*', 'purchase.*', 'purchase.id as pur_id')
+			->orderBy('products.product_id')
+			->get();
+
+		// Attach stock info
+		$manageproduct = $manageproduct->map(function ($mp) use ($shop_id) {
+			$stock = DB::table('stocks')
+				->where('shop_id', $shop_id)
+				->where('product_id', $mp->product_id)
+				->value('total_stock') ?? 0;
+
+			$mp->stock = $stock;
+			return $mp;
+		});
+
+		return view('products.approve', [
+			'manageproduct' => $manageproduct,
+			'shops' => $shops,
+			'shop_id' => $shop_id
+		]);
 	}
 
 	public function pending(){
@@ -560,12 +600,12 @@ public function low_stock(){
     $shop_id = $user->shop_id;
     $user_type = $user->user_type_id;
 
-    $manageproduct = DB::table('stockw')->where('shop_id', $shop_id)->get();
+    $manageproduct = DB::table('stocks')->where('shop_id', $shop_id)->get();
 
     $filteredProducts = [];
 
     foreach ($manageproduct as $product) {
-        $product_id = $product->item_id;
+        $product_id = $product->product_id;
 
         $stock = DB::table('products')
             ->select('products.product_id', 'products.quantity', 'products.minimum', 'products.model', 'products.price', 'product_description.name', 'product_description.bar_code')
