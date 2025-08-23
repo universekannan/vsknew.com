@@ -298,7 +298,8 @@ public function viewbill($id)
 
     // ✅ Get bill items with product names
     $bill = DB::table('order_products')
-        ->where('order_id', $id)
+    ->join('products','products.product_id','=','order_products.product_id')
+        ->where('order_products.order_id', $id)
         ->get();
 
     // ✅ Grand total
