@@ -62,6 +62,7 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('/order', 'App\Http\Controllers\ProductsController@Order');
     Route::post('/stock', 'App\Http\Controllers\ProductsController@Stock');
     Route::post('/updatemoreinfo', 'App\Http\Controllers\ProductsController@updatemoreinfo');
+    Route::post('/storeProduct', 'App\Http\Controllers\ProductsController@storeProduct');
      Route::get('/newbill', 'App\Http\Controllers\BillController@manageBill');
      Route::get('/billdetails/{from}/{to}', 'App\Http\Controllers\BillController@billdetails');
      Route::get('/viewbill/{id}', 'App\Http\Controllers\BillController@viewbill');

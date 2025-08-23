@@ -37,7 +37,7 @@
                         <input type="text" id="serach" class="form-control" placeholder="Search products..." />
                     </div>
                 </div>
-                <button type="button" class="col-sm-1 btn btn-block">
+                <button type="button" class="col-sm-1 btn btn-block" data-toggle="modal" data-target="#addProductModal">
                     <i class="fa fa-plus"></i> Add
                 </button>
             </div>
@@ -109,11 +109,118 @@
         </table>
     </div>
 
-    <!-- Hidden input required for JS pagination -->
     <input type="hidden" id="hidden_page" value="1" />
 </section>
+<div class="modal fade" id="addProductModal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h4 class="modal-title">Add Product</h4>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
 
-<!-- 🔽 Purchase Discount Modal -->
+            <form method="POST" action="{{ url('storeProduct') }}">
+                @csrf
+
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">
+                            <span class="text-danger">*</span>Category
+                        </label>
+                        <div class="col-sm-5">
+                            <select name="cat_id" id="cat_id" required class="form-control select2bs6">
+                                <option value="">Select Category</option>
+                                @foreach ($category as $cat)
+                                    <option value="{{ $cat->id }}" {{ old('cat_id') == $cat->id ? 'selected' : '' }}>
+                                        {{ $cat->category_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-sm-5">
+                            <select name="sub_cat_id" id="sub_cat_id" class="form-control select2bs6">
+                                <option value="">Select Sub Category</option>
+                                @foreach ($sub_category as $sub)
+                                    <option value="{{ $sub->id }}" {{ old('sub_cat_id') == $sub->id ? 'selected' : '' }}>
+                                        {{ $sub->category_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"><span class="text-danger">*</span>Product Name</label>
+                        <div class="col-sm-5">
+                            <input required type="text" name="product_name" class="form-control" maxlength="200"
+                                value="{{ old('product_name') }}" placeholder="Product Name">
+                        </div>
+
+                        <label class="col-sm col-form-label">Selling Price</label>
+                        <div class="col-sm-3">
+                            <input required type="text" name="price" class="form-control decimal" maxlength="200"
+                                value="{{ old('price') }}" placeholder="Price">
+                        </div>
+
+                        
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"><span class="text-danger">*</span>Short Description</label>
+                        <div class="col-sm-10">
+                            <textarea rows="2" required class="form-control" name="short_description" maxlength="50"
+                                placeholder="Short Description">{{ old('short_description') }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"><span class="text-danger">*</span>Description</label>
+                        <div class="col-sm-10">
+                            <textarea id="editor1" rows="5" required class="form-control" name="description"
+                                maxlength="5000" placeholder="Description">{{ old('description') }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">Buying Price</label>
+                        <div class="col-sm-4">
+                            <input name="buying_price" class="form-control decimal" type="text"
+                                value="{{ old('buying_price') }}" placeholder="Buying Price">
+                        </div>
+
+                        <label class="col-sm-2 col-form-label">Discount Price</label>
+                        <div class="col-sm-4">
+                            <input name="discount_price" class="form-control decimal" type="text"
+                                value="{{ old('discount_price') }}" placeholder="Discount Price">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">Discount Minimum</label>
+                        <div class="col-sm-4">
+                            <input name="weight" class="form-control decimal" type="text"
+                                value="{{ old('weight') }}" placeholder="Discount Minimum">
+                        </div>
+
+                        <label class="col-sm-2 col-form-label">MRP</label>
+                        <div class="col-sm-4">
+                            <input name="mrp" class="form-control decimal" type="text"
+                                value="{{ old('mrp') }}" placeholder="MRP">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="purchasediscountmodal">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
