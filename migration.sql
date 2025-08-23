@@ -303,3 +303,13 @@ CREATE TABLE `shop_billing` (
 
 
 ALTER TABLE `orders` CHANGE `telephone` `telephone` VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL;
+
+ALTER TABLE `categorys` CHANGE `category_name` `category_name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+
+CREATE TABLE `deliverable_location` (
+  `id` int(11) NOT NULL,
+  `store_id` int(11) DEFAULT 0,
+  `deliverable_id` int(11) DEFAULT 0,
+  `created_at` varchar(20) DEFAULT NULL
+) ENGINE=InnoDB;
+
