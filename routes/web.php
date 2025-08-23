@@ -42,6 +42,8 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('/barcodewithout', 'App\Http\Controllers\ProductsController@barcodewithout');
     Route::post('/save_barcode', 'App\Http\Controllers\ProductsController@save_barcode');
     Route::get('/products', 'App\Http\Controllers\ProductsController@manageProducts');
+    Route::get('get-subcategories/{catId}', 'App\Http\Controllers\ProductsController@getSubcategories');
+
     Route::get('/productpagination/fetch_data',  'App\Http\Controllers\ProductsController@fetch_data');
     Route::get('/products/banner/{id}', 'App\Http\Controllers\ProductsController@manageBanner');
 

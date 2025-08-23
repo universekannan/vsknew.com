@@ -33,27 +33,73 @@ use Milon\Barcode\DNS2D;
 
 class ProductsController extends BaseController
 {
-  use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-
 	public function manageProducts()
 	{
-	$manageproduct = DB::table('products')
-		->join('product_description', 'products.product_id', '=', 'product_description.product_id')
-		->select('products.*', 'product_description.name', 'product_description.bar_code')
-		->orderBy('products.product_id', 'ASC')
-		->paginate(10);
-
-     return view('products.index', compact('manageproduct'));
+		$manageproduct = DB::table('products')
+			->join('product_description', 'products.product_id', '=', 'product_description.product_id')
+			->select('products.*', 'product_description.name', 'product_description.bar_code')
+			->orderBy('products.product_id', 'ASC')
+			->paginate(10);
+	
+		$category = DB::table('categorys')
+			->where('status', 1)
+			->where('parent_id', 0)
+			->orderBy('id')
+			->get();
+	
+		$sub_category = collect(); 
+		$cat_id = 0;
+		$sub_cat_id = 0;
+		$product = null; 
+	
+		if ($manageproduct->count() > 0) {
+			$firstProduct = $manageproduct[0];
+			$product = DB::table('products')->where('product_id', $firstProduct->product_id)->first();
+	
+			if ($product) {
+				$sub_cat_id = $product->category_id;
+	
+				$maicat = DB::table('categorys')
+					->select('parent_id')
+					->where('id', $sub_cat_id)
+					->first();
+	
+				if ($maicat) {
+					$cat_id = $maicat->parent_id;
+				}
+	
+				$sub_category = DB::table('categorys')
+					->where('status', 1)
+					->where('parent_id', $cat_id)
+					->orderBy('category_name')
+					->get();
+			}
+		}
+	
+		return view('products.index', compact('manageproduct','category','sub_category','cat_id','sub_cat_id','product'));
 	}
 
-	public function updatemoreinfo(Request $request){
+	public function getSubcategories($catId)
+	{
+		$subcategories = DB::table('categorys')->where('parent_id', $catId)->get();
+		return response()->json($subcategories);
+	}
 
+
+	public function updatemoreinfo(Request $request){
+		$category_id = $request->sub_cat_id;
 	DB::table('products')->where('product_id',$request->product_id)->update([
+	   'product_name'               =>   $request->product_name,
+       'category_id'                =>   $category_id,
+	   'description'                =>   $request->description,
+       'short_description'          =>   $request->short_description,
 	   'price'                      =>   $request->price,
 	   'mrp'                        =>   $request->mrp,
 	   'buying_price'               =>   $request->buying_price,
 	   'discount_price'             =>   $request->discount_price,
-	   'discount_price_min_weight'  =>   $request->discount_weight,
+	   'discount_price_min_weight'  =>   $request->weight,
+	   'status'                     =>   $request->status,
+
 	 ]);
 	  return redirect()->back(); 
 	}

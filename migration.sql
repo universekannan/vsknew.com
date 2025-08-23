@@ -120,7 +120,7 @@ ALTER TABLE `oc_product` ADD `selling_type` INT(11) NOT NULL DEFAULT '1' AFTER `
 //////new/////
 
 CREATE TABLE `categorys` ( 
-  `category_id` int NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
    `image` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
     `parent_id` int NOT NULL DEFAULT '0', 
     `top` tinyint(1) NOT NULL, `column` int NOT NULL,
@@ -128,7 +128,7 @@ CREATE TABLE `categorys` (
     `status` tinyint(1) NOT NULL,
     `date_added` datetime NOT NULL, 
     `date_modified` datetime NOT NULL,
-    PRIMARY KEY (`category_id`),
+    PRIMARY KEY (`id`),
     KEY `parent_id` (`parent_id`)
    ) ENGINE=InnoDB;
 
@@ -266,3 +266,18 @@ Vegetables/fruits-and-vegetables.jpg',0,1,1,1,1,'2009-01-05 21:49:43','2024-02-2
 
 ALTER TABLE `stocks` ADD `shop_id` INT(10) NULL DEFAULT NULL AFTER `master_id`;
 ALTER TABLE `stocks` ADD `item_id` INT(10) NULL DEFAULT NULL AFTER `shop_id`;
+
+
+UPDATE products p JOIN product_description pd ON p.product_id = pd.product_id SET p.product_name = pd.name;
+
+
+ALTER TABLE `products` ADD `bar_code` VARCHAR(20) NULL DEFAULT NULL AFTER `product_name`, ADD `description` TEXT NULL DEFAULT NULL AFTER `bar_code`;
+
+
+CREATE TABLE stocks ( id int(11) NOT NULL AUTO_INCREMENT, shop_id int(11) NOT NULL, product_id int(11) DEFAULT NULL, stock int(11) NOT NULL DEFAULT 0, total_stock int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`) ) ENGINE=InnoDB;
+
+
+INSERT INTO stocks (product_id, shop_id, stock, total_stock)
+SELECT p.product_id, 1, 0, 0
+FROM products p
+WHERE p.product_id NOT IN (SELECT s.product_id FROM stocks s);
