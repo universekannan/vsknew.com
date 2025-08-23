@@ -84,6 +84,26 @@ class ProductsController extends BaseController
 	}
 
 
+	public function storeProduct(Request $request){
+	
+		$category_id = $request->sub_cat_id ?? $request->cat_id;
+
+		DB::table('products')->insert([
+			'product_name'              => $request->product_name,
+			'category_id'               => $category_id,
+			'description'               => $request->description,
+			'short_description'         => $request->short_description,
+			'price'                     => $request->price,
+			'mrp'                       => $request->mrp,
+			'buying_price'              => $request->buying_price,
+			'discount_price'            => $request->discount_price,
+			'discount_price_min_weight' => $request->weight,
+			'status'                    => 1,
+			  
+		]);
+	  return redirect()->back(); 
+	}
+	
 	public function updateproduct(Request $request)
 	{
 
