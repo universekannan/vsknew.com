@@ -665,7 +665,7 @@ $('.typeahead').typeahead().bind('typeahead:close', function () {
         bar_code:bar_code,
         _token: CSRF_TOKEN
       },
-      success: function (sales_id) 
+      success: function (response) 
       {
         $("#total_amount").val('');
         $("#gat_amount5").val('');
@@ -674,7 +674,7 @@ $('.typeahead').typeahead().bind('typeahead:close', function () {
           $("#addr"+(j)).html('');
         }
         i = 0;
-        view_bill(sales_id);
+        view_bill(response.bill_id);
       }
     });
   }

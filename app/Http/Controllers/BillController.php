@@ -33,6 +33,325 @@ class BillController extends BaseController
 {
   use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+
+  public function manageBill()
+  {
+    $manageproducts = DB::table('products')->orderBy('product_id','Asc')->get();
+
+    return view("Bill.newbill")->with('manageproducts',$manageproducts);
+  }
+
+
+  public function itemsearch($query)
+  {
+      $query = trim($query);
+      $shop_id = Auth::user()->shop_id;
+
+      // ✅ Main product search query
+      $result = DB::table('products')
+          ->where('product_name', 'like', "%{$query}%")
+          ->orderBy('product_name')
+          ->limit(20)
+          ->get();
+
+      $array = [];
+
+      foreach ($result as $res) {
+          $price  = number_format($res->price, 2);
+          $discount_price = number_format($res->discount_price, 2);
+          $discount_price_min_weight = number_format($res->discount_price_min_weight, 2);
+
+  
+          $pname = $res->product_name . " " . number_format((float)$res->price, 2, '.', '');
+
+          $array[] = [
+              'value'                     => $pname,
+              'id'                        => $res->product_id,
+              'price'                     => $price,
+              // 'stock'                     => $res->stock,
+              'discount_price'            => $discount_price,
+              'discount_price_min_weight' => $discount_price_min_weight,
+              'selling_type'              => $res->selling_type,
+          ];
+      }
+
+      return response()->json($array);
+  }
+
+
+public function savebill(Request $request)
+{
+    $invoice_no = "0";
+    $invoice_prefix = "I";
+    $store_id = 0;
+    $store_name = 'VSK Brothers';
+    $store_url = 'https://vskbrothers.com';
+    $customer_group_id = 1;
+
+    $shop_id     = Auth::user()->shop_id;
+    $sales       = $request->get('sales');
+    $amount      = $request->get('amount');
+    $gst_amount  = $request->get('gst_amount');
+    $net_amount  = $request->get('net_amount');
+    $mobile      = $request->get('mobile');
+    $cust_name   = $request->get('cust_name');
+    $bar_code    = $request->get('bar_code');
+    $sales_array = json_decode($sales, true);
+    $bill_date   = now()->toDateString();
+
+    // fallback if customer_id not passed
+    $customer_id = $request->get('customer_id', 1);
+
+    // ✅ Find next bill number
+    $billnum = DB::table('shop_billing')
+        ->where('shop_id', $shop_id)
+        ->max('billnum');
+    $billnum = $billnum ? $billnum + 1 : 1;
+
+    // ✅ Insert into shop_billing
+    $bill_id = DB::table('shop_billing')->insertGetId([
+        'shop_id'   => $shop_id,
+        'billnum'   => $billnum,
+        'bill_date' => $bill_date,
+        'total'     => $amount,
+        'mobile'    => $mobile,
+        'cust_name' => $cust_name,
+        'bar_code'  => $bar_code,
+        'gst_amount'=> $gst_amount,
+        'net_amount'=> $net_amount,
+    ]);
+
+    // ✅ Insert into oc_order
+    $order_id = DB::table('orders')->insertGetId([
+        'invoice_no'        => $billnum,
+        'invoice_prefix'    => $invoice_prefix,
+        'store_id'          => $shop_id,
+        'store_name'        => '',
+        'store_url'         => '',
+        'customer_id'       => $customer_id,
+        'customer_group_id' => $customer_group_id,
+        'firstname'         => $cust_name,
+        'lastname'          => $cust_name,
+        'email'             => '',
+        'telephone'         => $mobile,
+        'payment_firstname' => $cust_name,
+        'payment_lastname'  => $cust_name,
+        'payment_address_1' => '',
+        'payment_address_2' => '',
+        'payment_city'      => '',
+        'payment_postcode'  => '',
+        'payment_country'   => '',
+        'payment_zone'      => '',
+        'payment_method'    => '',
+        'shipping_firstname'=> $cust_name,
+        'shipping_lastname' => $cust_name,
+        'shipping_address_1'=> '',
+        'shipping_address_2'=> '',
+        'shipping_city'     => '',
+        'shipping_postcode' => '',
+        'shipping_country'  => '',
+        'shipping_country_id'=> 1,
+        'shipping_zone'     => '',
+        'shipping_method'   => '',
+        'total'             => $amount,
+        'order_status_id'   => 1,
+        'affiliate_id'      => 1,
+        'commission'        => '0.00',
+        'marketing_id'      => 1,
+        'language_id'       => 1,
+        'currency_id'       => 1,
+        'currency_code'     => '',
+        'currency_value'    => '1.00000000',
+        'date_added'        => $bill_date,
+        'date_modified'     => $bill_date,
+        'payment_zone_id'   => 1,
+        'shipping_zone_id'  => 1,
+        'custom_field'      => '',
+        'payment_custom_field' => '',
+        'shipping_custom_field'=> '',
+        'comment'           => '',
+    ]);
+
+    // ✅ Insert order items + update stock
+    foreach ($sales_array as $sal) {
+        $item_id  = $sal["item_id"];
+        $quantity = $sal["item_quantity"];
+        $rate     = $sal["item_rate"];
+        $line_amount = $sal["item_amount"];
+
+        // update stock
+        // DB::table('stocks')
+        //     ->where('shop_id', $shop_id)
+        //     ->where('product_id', $item_id)
+        //     ->decrement('stock', $quantity);
+
+        DB::table('products')
+            ->where('product_id', $item_id)
+            ->decrement('quantity', $quantity);
+
+        // insert into oc_order_product
+        DB::table('order_products')->insert([
+            'order_id'  => $order_id,
+            'product_id'=> $item_id,
+            'name'      => $cust_name,
+            'quantity'  => $quantity,
+            'price'     => $rate,
+            'total'     => $line_amount,
+        ]);
+    }
+
+    // ✅ Order history
+    $order_status_id = 1;
+    DB::table('orders_history')->insert([
+        'order_id'       => $order_id,
+        'order_status_id'=> $order_status_id,
+        'date_added'     => $bill_date,
+    ]);
+
+    // // ✅ Order totals
+    // DB::table('oc_order_total')->insert([
+    //     'order_id' => $order_id,
+    //     'code'     => 'sub-total',
+    //     'title'    => 'Sub-Total',
+    //     'value'    => $amount,
+    // ]);
+
+    // DB::table('oc_order_total')->insert([
+    //     'order_id' => $order_id,
+    //     'code'     => 'shipping',
+    //     'title'    => 'Flat Shipping Rate',
+    //     'value'    => 0,
+    // ]);
+
+     $total_payable = $amount;
+
+    // DB::table('oc_order_total')->insert([
+    //     'order_id' => $order_id,
+    //     'code'     => 'total',
+    //     'title'    => 'Total',
+    //     'value'    => $total_payable,
+    // ]);
+
+    // update order total
+    DB::table('orders')
+        ->where('order_id', $order_id)
+        ->update(['total' => $total_payable]);
+
+    return response()->json(['bill_id' => $bill_id, 'order_id' => $order_id, 'message' => 'Bill saved successfully']);
+}
+
+public function add_customer(Request $request){
+  $firstname = $request->post('firstname');
+  $lastname  = $request->post('lastname');
+  $telephone = $request->post('telephone');
+  $email     = $request->post('email');
+  
+  DB::table('customers')->insert([
+   'firstname' => $firstname,
+   'lastname'  => $lastname,
+   'telephone' => $telephone,
+   'email'     => $email,
+   'password'  => bcrypt('123456'), 
+ ]);
+ 
+ return redirect()->back();
+}
+
+public function itemsearchmobile($mobile){
+  $results = DB::table('customers')->select('customer_id','telephone','firstname','lastname')->where('telephone', 'LIKE', $mobile . '%')->get();
+echo json_encode($results);
+}
+
+public function viewbill($id)
+{
+    $shop_id = Auth::user()->shop_id;
+
+    // ✅ Get order info
+    $order = DB::table('orders')
+        ->where('shop_id', $shop_id)
+        ->where('order_id', $id)
+        ->first();
+
+    // Default values
+    $billnum    = "";
+    $bill_date  = "";
+    $mobile     = "";
+    $cust_name  = "";
+    $total      = "";
+    $gst_amount = "";
+    $net_amount = "";
+
+    if ($order) {
+        // adapt fields to your schema
+        $billnum    = $order->invoice_no ?? "";
+        $bill_date  = $order->date_added ?? "";
+        $mobile     = $order->telephone ?? "";
+        $cust_name  = $order->firstname ?? "";
+        $total      = $order->total ?? 0;
+        $gst_amount = $order->gst_amount ?? 0;   // only if column exists
+        $net_amount = $order->total ?? 0;
+    }
+
+    if ($bill_date) {
+        $bill_date = date("d-m-Y", strtotime($bill_date));
+    }
+
+    // ✅ Get bill items with product names
+    $bill = DB::table('order_products')
+        ->where('order_id', $id)
+        ->get();
+
+    // ✅ Grand total
+    $gtotal = DB::table('orders')
+        ->where('order_id', $id)
+        ->first();
+
+    return view("Bill.viewbill", compact(
+        'gtotal',
+        'total',
+        'billnum',
+        'bill_date',
+        'mobile',
+        'cust_name',
+        'bill',
+        'gst_amount',
+        'net_amount',
+        'id'
+    ));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   public function getitembybarcode($barcode){
     $shop_id = Auth::user()->shop_id;
     $sql = "select a.product_id,a.name,c.price,c.discount_price,c.discount_price_min_weight,c.tax_class_id,b.stock from oc_product_description a,stock b,oc_product c where a.product_id=c.product_id and a.product_id=b.item_id and b.shop_id=$shop_id and a.bar_code = '$barcode' and b.stock > 0";
@@ -62,32 +381,6 @@ class BillController extends BaseController
     echo json_encode($response);
   }
 
-  public function itemsearch($query){
-    $query = trim($query);
-    $shop_id = Auth::user()->shop_id;
-    $sql = "select a.product_id,a.name,c.price,c.discount_price,c.discount_price_min_weight,c.tax_class_id,b.stock,c.selling_type from oc_product_description a,stock b,oc_product c where a.product_id=c.product_id and a.product_id=b.item_id and b.shop_id=$shop_id and a.name like '%$query%' and b.stock > 0";
-    $sql= $sql ." order by name LIMIT 20";
-    $result = DB::select(DB::raw($sql));
-    $array = array();
-    foreach ($result as $key => $res) {
-      $price = number_format($res->price,2);
-      $discount_price = number_format($res->discount_price,2);
-      $discount_price_min_weight = number_format($res->discount_price_min_weight,2);
-      $tax_class_id = $res->tax_class_id;
-      $selling_type = $res->selling_type;
-      $sql2 = "select rate,name from oc_tax_rule a,oc_tax_rate b where a.tax_rate_id=b.tax_rate_id and a.tax_class_id=$tax_class_id";
-      $result2 = DB::select(DB::raw($sql2));
-      $gst = 0;
-      $tax_name = "";
-      if(count($result2) > 0){
-        $gst = round($result2[0]->rate,0);
-        $tax_name = $result2[0]->name;
-      }
-      $pname = $res->name ." ".number_format((float)$res->price, 2, '.', '');
-      $array[] = array('value' => $pname,'id' => $res->product_id,'price' => $price,'stock' => $res->stock,'gst' => $gst,'tax_name' => $tax_name,'discount_price' => $discount_price, 'discount_price_min_weight' => $discount_price_min_weight,'selling_type' => $selling_type);
-    }
-    echo json_encode($array);
-  }
   
   
   public function itemsearchedit($query){
@@ -117,44 +410,9 @@ class BillController extends BaseController
   }
   
   
-  public function itemsearchmobile($mobile){
-    $results = DB::table('oc_customer')->select('customer_id','telephone','firstname','lastname')->where('telephone', 'LIKE', $mobile . '%')->get();
-	echo json_encode($results);
-  }
+  
 
-  public function viewbill($id){
-    $shop_id = Auth::user()->shop_id;
-    $sql = "select * from oc_order where shop_id=$shop_id and order_id=$id";
-    $result = DB::select(DB::raw($sql));
-    $billnum = "";
-    $bill_date = "";
-    $mobile = "";
-    $cust_name = "";
-    $total = "";
-    $gst_amount = "";
-    $net_amount = "";
-    if(count($result) > 0){
-      $billnum    = $result[0]->billnum;
-      $bill_date  = $result[0]->bill_date;
-      $mobile     = $result[0]->mobile;
-      $cust_name  = $result[0]->cust_name;
-      $total      = $result[0]->total;
-      $gst_amount = $result[0]->gst_amount;
-      $net_amount = $result[0]->total;
-    }
-    $bill_date = date("d-m-Y",strtotime($bill_date));
-    $bill = DB::table('oc_order_product')
-			->leftjoin('oc_product_description','oc_product_description.product_id','=','oc_order_product.product_id')
-			->select('oc_order_product.*','oc_product_description.name as proname')
-            ->where('order_id', $id)
-            ->get();
-		  
-		  $gtotal = DB::table('oc_order')
-          ->where('order_id', $id)
-          ->first();
-
-    return view("Bill.viewbill",compact('gtotal','total','billnum','bill_date','mobile','cust_name','bill','gst_amount','net_amount','id'));
-  }
+  
 
   public function billdetails($from,$to)
   {
@@ -164,145 +422,11 @@ class BillController extends BaseController
     return view("Bill.billdetails",compact('from','to','bill'));
   }
 
-  public function manageBill()
-  {
-    $manageproducts = DB::table('oc_product')->select('oc_product.*','oc_product_description.name','oc_product_description.product_id','oc_product.product_id as pID')
-    ->Join('oc_product_description', 'oc_product.product_id', '=', 'oc_product_description.product_id')
-    ->orderBy('oc_product.product_id','Asc')->get();
+  
 
-    return view("Bill.newbill")->with('manageproducts',$manageproducts);
-  }
+  
 
-  public function savebill(Request $request)
-  {
-	$invoice_no="0";
-	$invoice_prefix="I";
-	$store_id=0;
-	$store_name='VSK Brothers';
-	$store_url='https://vskbrothers.com';
-	$customer_group_id=1;
 	
-    $shop_id = Auth::user()->shop_id;
-    $sales       = $request->get('sales');
-    $amount      = $request->get('amount');
-    $gst_amount  = $request->get('gst_amount');
-    $net_amount  = $request->get('net_amount');
-    $mobile      = $request->get('mobile');
-    $cust_name   = $request->get('cust_name');
-    $bar_code    = $request->get('bar_code');
-    $sales_array = json_decode($sales,true);
-    $bill_date   = date("Y-m-d");
-    $billnum     = 0;
-	
-	if(!empty($customer_id)){
-		$customer_id = $customer_id;
-	} else {
-		$customer_id = 1;
-	}
-		
-	
-	
-    $sql="select max(billnum) bilnum from shop_billing where shop_id=$shop_id";
-    $result = DB::select(DB::raw($sql));
-    if(count($result) > 0){
-      $billnum = $result[0]->bilnum;
-      $billnum = $billnum + 1;
-    }else{
-      $billnum = 1;
-    }
-    $sql = "insert into shop_billing (shop_id,billnum,bill_date,total,mobile,cust_name,bar_code,gst_amount,net_amount) values ($shop_id,$billnum,'$bill_date',$amount,'$mobile','$cust_name','$bar_code',$gst_amount,$net_amount)";
-
-    DB::insert($sql);
-    $bill_id = DB::getPdo()->lastInsertId();
-	
-	//// OPEN CART /////
-	
-	
-	$str="INSERT INTO `oc_order`(invoice_no,invoice_prefix,store_id,store_name,store_url,customer_id,customer_group_id,firstname,lastname,email,telephone,payment_firstname,payment_lastname,payment_address_1,payment_address_2,payment_city,payment_postcode,payment_country,payment_zone,payment_method,shipping_firstname,shipping_lastname,shipping_address_1,shipping_address_2,shipping_city,shipping_postcode,shipping_country,shipping_country_id,shipping_zone,shipping_method,total,order_status_id,affiliate_id,commission,marketing_id,language_id,currency_id,currency_code,currency_value,date_added,date_modified,payment_zone_id,shipping_zone_id,custom_field,payment_custom_field,shipping_custom_field,comment) VALUES ('$billnum','','$shop_id','','',$customer_id,$customer_group_id,'$cust_name','$cust_name','','$mobile','$cust_name','$cust_name','','','','','','','','$cust_name','$cust_name','','','','','',1,'','','$amount',1,1,'0.00',1,1,1,'','1.00000000','$bill_date','$bill_date',1,1,'','','','')";
-
-	DB::insert($str);
-	
-	///// OPEN CART //////
-	
-    foreach($sales_array as $sal){
-      $item_id  = $sal["item_id"];
-      $quantity = $sal["item_quantity"];
-      $rate     = $sal["item_rate"];
-      $amount   = $sal["item_amount"];
-      
-      $sql="update stock set stock = stock - $quantity where shop_id=$shop_id and item_id=$item_id";
-      DB::update($sql);
-      $sql="update oc_product set quantity = quantity - $quantity where  product_id=$item_id";
-      DB::update($sql);
-	  
-	  ///// OPEN CART //////
-		
-		$sql = "INSERT INTO oc_order_product (order_id, product_id, name, quantity, price, total) 
-        VALUES ('$bill_id', '$item_id', '$cust_name', '$quantity', '$rate', '$amount')";
-		DB::insert($sql);
-
-
-	  ///// OPEN CART //////
-    }
-	
-	///// OPEN CART //////
-		$order_status_id = 1;
-
-		// Insert into `oc_order_history`
-		DB::insert(
-			"INSERT INTO oc_order_history (order_id, order_status_id, date_added) VALUES (?, ?, ?)", 
-			[$billnum, $order_status_id, $bill_date]
-		);
-
-		// Insert into `oc_order_total` for sub-total
-		DB::insert(
-			"INSERT INTO oc_order_total (order_id, code, title, value) VALUES (?, ?, ?, ?)", 
-			[$billnum, 'sub-total', 'Sub-Total', $amount]
-		);
-
-		// Insert into `oc_order_total` for shipping
-		DB::insert(
-			"INSERT INTO oc_order_total (order_id, code, title, value) VALUES (?, ?, ?, ?)", 
-			[$billnum, 'shipping', 'Flat Shipping Rate', '']
-		);
-
-		// Calculate total payable
-		$total_payable = $amount + 0;
-
-		// Insert into `oc_order_total` for total
-		DB::insert(
-			"INSERT INTO oc_order_total (order_id, code, title, value) VALUES (?, ?, ?, ?)", 
-			[$billnum, 'total', 'Total', $total_payable]
-		);
-
-		// Update `oc_order` with total
-		DB::update(
-			"UPDATE oc_order SET total = ? WHERE order_id = ?", 
-			[$total_payable, $billnum]
-		);
-
-	///// OPEN CART //////
-
-    echo $bill_id;
-
-  }
-
-	public function add_customer(Request $request){
-		 $firstname = $request->post('firstname');
-		 $lastname  = $request->post('lastname');
-		 $telephone = $request->post('telephone');
-		 $email     = $request->post('email');
-		 
-		 DB::table('oc_customer')->insert([
-			'firstname' => $firstname,
-			'lastname'  => $lastname,
-			'telephone' => $telephone,
-			'email'     => $email,
-			'password'  => bcrypt('123456'), 
-		]);
-		
-		return redirect()->back();
-	}
 	
 	
 	public function savebillupdate(Request $request)

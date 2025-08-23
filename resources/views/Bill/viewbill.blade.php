@@ -52,7 +52,7 @@
 	                          @foreach($bill as $key=> $b)
                                     <tr>
                                         <td style="padding:0px;"  class="text-left">{{ $key +1 }}</td>
-                                        <td style="padding:0px;" class="text-left">{{ $b->proname }}</td>
+                                        <td style="padding:0px;" class="text-left">{{ $b->product_name }}</td>
                                         <td class="text-center">{{ $b->quantity }}</td>
                                         <td class="text-center">{{ $b->total }}</td>
                                     </tr>

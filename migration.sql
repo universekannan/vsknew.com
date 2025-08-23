@@ -112,3 +112,24 @@ ALTER TABLE `oc_order` CHANGE `total` `total` DECIMAL(15,2) NOT NULL DEFAULT '0.
 
 
 ALTER TABLE `oc_product` ADD `selling_type` INT(11) NOT NULL DEFAULT '1' AFTER `vsk_user_id`;
+
+CREATE TABLE `shop_billing` (
+  `id` int(11) NOT NULL,
+  `shop_id` int(11) DEFAULT NULL,
+  `billnum` int(11) DEFAULT NULL,
+  `bill_date` datetime DEFAULT NULL,
+  `total` decimal(10,2) DEFAULT NULL,
+  `mobile` varchar(50) DEFAULT NULL,
+  `cust_name` varchar(50) DEFAULT NULL,
+  `bar_code` varchar(20) DEFAULT NULL,
+  `gst_amount` decimal(10,2) DEFAULT 0.00,
+  `net_amount` decimal(10,2) DEFAULT 0.00,
+  `login_id` int(11) DEFAULT NULL,
+  `order_id` int(11) DEFAULT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `order_status_id` int(11) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL
+) ENGINE=InnoDB
+
+
+ALTER TABLE `orders` CHANGE `telephone` `telephone` VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL;

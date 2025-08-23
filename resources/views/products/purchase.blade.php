@@ -46,12 +46,12 @@
                @foreach($manageproduct as $key=>$prod)
                <tr>
                   <td>{{ $key + 1 }}</td>
-                  <td>{{ $prod->name }}</td>
+                  <td>{{ $prod->product_name }}</td>
                   <td>{{ $prod->quantity }}</td>
                   <td>{{ $prod->minimum }} </td>
                   <td>{{ $prod->price }}</td>
                   @if($prod->pending_purchase == 0)
-                  <td style="color:red" id="purchasetd_{{ $prod->product_id }}"><a onclick="show_purchase_modal('{{ $prod->product_id }}','{{ $prod->name }}','{{ $prod->minimum }}','{{ $prod->quantity }}')" href="#" class="btn btn-xs btn-success">Purchase</a></td>
+                  <td style="color:red" id="purchasetd_{{ $prod->product_id }}"><a onclick="show_purchase_modal('{{ $prod->product_id }}','{{ $prod->product_name }}','{{ $prod->minimum }}','{{ $prod->quantity }}')" href="#" class="btn btn-xs btn-success">Purchase</a></td>
                   @else
                   <td style="color:red">Pending</td>
                   @endif
