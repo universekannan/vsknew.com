@@ -50,12 +50,12 @@
                   <td>{{ $key + 1 }}</td>
                   <td>{{ $prod->product_id }}</td>
                   <td>{{ $prod->model }}</td>
-                  <td>{{ $prod->name }}</td>
+                  <td>{{ $prod->product_name }}</td>
                   <td>{{ $prod->stock }}</td>
                   <td>{{ $prod->minimum }}</td>
                   <td>{{ $prod->pqty }}</td>
                   <td>{{ $prod->price }}</td>
-                  <td style="color:red" id="purchasetd_{{ $prod->product_id }}"><a onclick="show_approve_modal('{{ $prod->product_id }}','{{ $prod->name }}','{{ $prod->minimum }}','{{ $prod->stock }}','{{ $prod->pqty }}','{{ $prod->pur_id }}')" href="#" class="btn btn-xs btn-success">Approve</a>
+                  <td style="color:red" id="purchasetd_{{ $prod->product_id }}"><a onclick="show_approve_modal('{{ $prod->product_id }}','{{ $prod->product_name }}','{{ $prod->minimum }}','{{ $prod->stock }}','{{ $prod->pqty }}','{{ $prod->pur_id }}')" href="#" class="btn btn-xs btn-success">Approve</a>
                      <a onclick="return confirm('Do you want to confirm delete trafic?')"  onclick="cancel_purchase('{{ $prod->product_id }}','{{ $prod->pur_id }}')" class="btn btn-xs btn-danger">Cancel</a>
                      </td>
                </tr>

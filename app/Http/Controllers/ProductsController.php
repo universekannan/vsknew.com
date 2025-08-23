@@ -7,8 +7,6 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Config;
-
-
 use App\Models\Core\Setting;
 use App\Models\Admin\Admin;
 use App\Models\Core\Order;
@@ -209,9 +207,9 @@ class ProductsController extends BaseController
 			foreach ($manageproduct as $product) {
 				$product_id = $product->product_id;
 
-				$stock = DB::table('stock')
+				$stock = DB::table('stocks')
 					->where('shop_id', $shop_id)
-					->where('item_id', $product_id)
+					->where('product_id', $product_id)
 					->first();
 
 				if ($stock && $stock->stock < $product->minimum) {
@@ -252,27 +250,50 @@ class ProductsController extends BaseController
 		return view("products.purchase")->with('manageproduct', $manageproduct)->with('shops', $shops)->with('shop_id', $shop_id);
 	}
 
-	public function approve($shop_id){
+	public function approve($shop_id)
+	{
 		$user_type_id = Auth::user()->user_type_id;
-		$sql = "select shop_id,shop_name from users GROUP BY shop_id";
-		if($user_type_id != 1){
-		  $sql = "select shop_id,shop_name from users where shop_id=$shop_id GROUP BY shop_id";
+
+		// Get shops
+		$shopsQuery = DB::table('users')
+			->select('shop_id', 'shop_name')
+			->groupBy('shop_id', 'shop_name');
+
+		if ($user_type_id != 1) {
+			$shopsQuery->where('shop_id', $shop_id);
+		} else {
+			$shopsQuery->where('shop_id', 1);
 		}
-		$shops = DB::select(DB::raw($sql));
-		$sql = "select *,c.id as pur_id from products a,product_description b,purchase c where a.product_id=b.product_id and c.shop_id=$shop_id and a.product_id=c.item_id and c.status=0 order by a.product_id";
-		$manageproduct = DB::select(DB::raw($sql));
-		$manageproduct = json_decode(json_encode($manageproduct),true);
-		foreach($manageproduct as $key => $mp){
-		  $item_id = $mp["product_id"];
-		  $manageproduct[$key]["stock"] = 0;
-		  $sql="select * from stock where shop_id=$shop_id and item_id=$item_id";
-		  $res = DB::select(DB::raw($sql));
-		  if(count($res) > 0){
-			$manageproduct[$key]["stock"] = $res[0]->stock;
-		  }
-		}
-		$manageproduct = json_decode(json_encode($manageproduct));
-		return view("products.approve")->with('manageproduct', $manageproduct)->with('shops', $shops)->with('shop_id', $shop_id);
+
+		$shops = $shopsQuery->get();
+
+		// Get manage products
+		$manageproduct = DB::table('products')
+			->join('purchase', function ($join) use ($shop_id) {
+				$join->on('products.product_id', '=', 'purchase.item_id')
+					->where('purchase.shop_id', '=', $shop_id)
+					->where('purchase.status', '=', 0);
+			})
+			->select('products.*', 'purchase.*', 'purchase.id as pur_id')
+			->orderBy('products.product_id')
+			->get();
+
+		// Attach stock info
+		$manageproduct = $manageproduct->map(function ($mp) use ($shop_id) {
+			$stock = DB::table('stocks')
+				->where('shop_id', $shop_id)
+				->where('product_id', $mp->product_id)
+				->value('total_stock') ?? 0;
+
+			$mp->stock = $stock;
+			return $mp;
+		});
+
+		return view('products.approve', [
+			'manageproduct' => $manageproduct,
+			'shops' => $shops,
+			'shop_id' => $shop_id
+		]);
 	}
 
 	public function pending(){

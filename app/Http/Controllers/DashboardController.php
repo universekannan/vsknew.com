@@ -52,7 +52,7 @@ class DashboardController extends BaseController
 			$sql="select count(*) as no_of_items from products";
 		} else {
 			//$sql="select count(*) as no_of_items from products where shop_id = $shop_id";
-		    $sql = "select a.* ,b.* ,count(shop_id) as no_of_items from products a, stock b  where a.product_id=b.item_id and b.shop_id = $shop_id";
+		    $sql = "select a.* ,b.* ,count(shop_id) as no_of_items from products a, stocks b  where a.product_id=b.product_id and b.shop_id = $shop_id";
 			
 		}
 
