@@ -153,7 +153,7 @@ public function savebill(Request $request)
         'shipping_country_id'=> 1,
         'shipping_zone'     => '',
         'shipping_method'   => '',
-        'total'             => $amount,
+        'total'             => $net_amount,
         'order_status_id'   => 1,
         'affiliate_id'      => 1,
         'commission'        => '0.00',
@@ -297,7 +297,7 @@ public function viewbill($id)
     }
 
     // ✅ Get bill items with product names
-    $bill = DB::table('order_products')
+    $bill = DB::table('order_products')->select('order_products.*','products.product_name')
     ->join('products','products.product_id','=','order_products.product_id')
         ->where('order_products.order_id', $id)
         ->get();

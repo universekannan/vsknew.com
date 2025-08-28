@@ -628,9 +628,9 @@ $('.typeahead').typeahead().bind('typeahead:close', function () {
   function submit_data()
   {
     var CSRF_TOKEN = $("input[name=_token]").val();
-    var total_amount = ~~parseInt($('#total_amount').val());
-    var gst_amount = ~~parseInt($('#gat_amount5').val());
-    var net_amount = ~~parseInt($('#net_amount').val());
+    var total_amount = $('#total_amount').val();
+    var gst_amount = $('#gat_amount5').val();
+    var net_amount = $('#net_amount').val();
     if(total_amount<=0)
     {
       alert("Amount should be greater than zero");
