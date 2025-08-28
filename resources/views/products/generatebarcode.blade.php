@@ -78,7 +78,7 @@ html {
       </div>
    <p style="margin-top: -10px;"> {!! DNS1D::getBarcodeSVG($prod->bar_code, "EAN13",1.0,30) !!}  </p>
 
-        <p style="margin-top: -20px;font-size: 12px;">{{$prod->name}}</p>
+        <p style="margin-top: -20px;font-size: 12px;">{{$prod->product_name}}</p>
    
 </div>
 </center>

@@ -37,7 +37,7 @@
                         <input type="text" id="serach" class="form-control" placeholder="Search products..." />
                     </div>
                 </div>
-                <button type="button" class="col-sm-1 btn btn-block" data-toggle="modal" data-target="#addProductModal">
+                <button type="button" class="col-sm-1 btn btn-primary" data-toggle="modal" data-target="#addProductModal">
                     <i class="fa fa-plus"></i> Add
                 </button>
             </div>
@@ -62,7 +62,7 @@
                 <tr>
                     <td>{{ $key + 1 }}</td>
                     <td>{{ $prod->product_id }}</td>
-                    <td>{{ $prod->name }}</td>
+                    <td>{{ $prod->product_name }}</td>
                     <td>{{ $prod->minimum }}</td>
                     <td>{{ round($prod->price,0) }}</td>
                     <td>{{ $prod->bar_code }}</td>
@@ -74,7 +74,7 @@
                             <div class="dropdown-content">
                                 <a onclick="show_discountprice_modal(
                                     '{{ $prod->product_id }}',
-                                    '{{ $prod->name }}',
+                                    '{{ $prod->product_name }}',
                                     '{{ $prod->price }}',
                                     '{{ $prod->buying_price }}',
                                     '{{ $prod->discount_price }}',
@@ -91,7 +91,7 @@
                                 </a>
 
                                 @if($prod->bar_code != "")
-                                <a onclick="printbarcode('{{ $prod->product_id }}','{{ $prod->name }}')">Print
+                                <a onclick="printbarcode('{{ $prod->product_id }}','{{ $prod->product_name }}')">Print
                                     Barcode</a>
                                 @endif
                             </div>

@@ -63,7 +63,7 @@
                     </div>
                     <hr>
                     <div align="center">
-                        <strong>Total ₹ {{ $gtotal->total }}</strong>
+                        <strong>Total ₹ {{ $gtotal->total ?? 0 }}</strong>
                     </div>
                     <div align="center">
                         Order ID {{ $id }}

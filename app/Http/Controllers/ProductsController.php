@@ -33,11 +33,7 @@ class ProductsController extends BaseController
 {
 	public function manageProducts()
 	{
-		$manageproduct = DB::table('products')
-			->join('product_description', 'products.product_id', '=', 'product_description.product_id')
-			->select('products.*', 'product_description.name', 'product_description.bar_code')
-			->orderBy('products.product_id', 'ASC')
-			->paginate(10);
+		$manageproduct = DB::table('products')->orderBy('product_id', 'Desc')->where('status',1)->paginate(10);
 	
 		$category = DB::table('categorys')
 			->where('status', 1)
@@ -86,11 +82,10 @@ class ProductsController extends BaseController
 
 	public function storeProduct(Request $request){
 	
-		$category_id = $request->sub_cat_id ?? $request->cat_id;
-
 		DB::table('products')->insert([
 			'product_name'              => $request->product_name,
-			'category_id'               => $category_id,
+			'category_id'               => $request->cat_id,
+			'sub_category_id'           => $request->sub_cat_id,
 			'description'               => $request->description,
 			'short_description'         => $request->short_description,
 			'price'                     => $request->price,
@@ -109,7 +104,8 @@ class ProductsController extends BaseController
 
 		DB::table('products')->where('product_id', $request->product_id)->update([
 			'product_name'               => $request->product_name,
-			'category_id'                => $request->sub_cat_id,
+			'category_id'                => $request->cat_id,
+			'sub_category_id'            => $request->sub_cat_id,
 			'description'                => $request->description,
 			'short_description'          => $request->short_description,
 			'price'                      => $request->price,
@@ -124,16 +120,36 @@ class ProductsController extends BaseController
 	 return redirect()->back()->with('success', 'Product updated successfully!');
 	}
 	
-	public function generateBarcode($id){
-	  $random = rand('11','99');
-	  $barcode = $random."".time();
-	  $sql="update product_description set bar_code='$barcode' where product_id=$id";
-	  DB::update($sql);
+	public function generateBarcode($id)
+	{
+		$random  = rand(11, 99);
+		$barcode = $random . time();
 
-	 return redirect()->back()->with('success','Barcode Updated Successfully');
+		DB::table('products')
+			->where('product_id', $id)
+			->update(['bar_code' => $barcode]);
+
+		return redirect()->back()->with('success', 'Barcode Updated Successfully');
 	}
+
 	
-	
+	public function printBarcode($id,$count){
+		$customPaper = array(0,0,500,850);
+  
+		$products = DB::table('products')->where('product_id', '=',$id)->orderBy('product_id','Asc')->get();
+		return view('products.generatebarcode')->with('products',$products)->with('count',$count);
+		
+		$pdf = PDF::loadView("products/generatebarcode",compact('products'))->setPaper($customPaper, 'portrait');
+		$path ="uploads".DIRECTORY_SEPARATOR."productpdf".DIRECTORY_SEPARATOR.$id.".pdf";
+		return $pdf->download($id.".pdf");  
+		return response()->file($path);
+	}
+
+
+
+
+
+
 	
 	
 	
@@ -459,21 +475,6 @@ class ProductsController extends BaseController
 	  //return view("products.banner")->with('managebanner', $managebanner);
 	}
 
-
-
-	public function printBarcode($id,$count){
-	  $customPaper = array(0,0,500,850);
-
-	  $products = DB::table('products')->select('products.*','product_description.*','products.product_id as productid')
-	  ->Join('product_description', 'product_description.product_id', '=', 'products.product_id')->where('products.product_id', '=',$id)->orderBy('products.product_id','Asc')->get();
-	  return view('products.generatebarcode')->with('products',$products)->with('count',$count);
-	  
-	  $pdf = PDF::loadView("products/generatebarcode",compact('products'))->setPaper($customPaper, 'portrait');
-	  $path ="uploads".DIRECTORY_SEPARATOR."productpdf".DIRECTORY_SEPARATOR.$id.".pdf";
-	  return $pdf->download($id.".pdf");  
-	  return response()->file($path);
-
-	}
 
 	public function addProduct(Request $request){
 	  $addproduct = DB::table('ph_products')->insert([
