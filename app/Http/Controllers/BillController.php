@@ -47,9 +47,9 @@ class BillController extends BaseController
       $query = trim($query);
       $shop_id = Auth::user()->shop_id;
 
-      // ✅ Main product search query
       $result = DB::table('products')
           ->where('product_name', 'like', "%{$query}%")
+          ->where('status',1)
           ->orderBy('product_name')
           ->limit(20)
           ->get();

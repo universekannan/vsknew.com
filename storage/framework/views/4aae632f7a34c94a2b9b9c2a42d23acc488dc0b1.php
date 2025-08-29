@@ -37,7 +37,7 @@
                         <input type="text" id="serach" class="form-control" placeholder="Search products..." />
                     </div>
                 </div>
-                <button type="button" class="col-sm-1 btn btn-block" data-toggle="modal" data-target="#addProductModal">
+                <button type="button" class="col-sm-1 btn btn-primary" data-toggle="modal" data-target="#addProductModal">
                     <i class="fa fa-plus"></i> Add
                 </button>
             </div>
@@ -62,7 +62,7 @@
                 <tr>
                     <td><?php echo e($key + 1); ?></td>
                     <td><?php echo e($prod->product_id); ?></td>
-                    <td><?php echo e($prod->name); ?></td>
+                    <td><?php echo e($prod->product_name); ?></td>
                     <td><?php echo e($prod->minimum); ?></td>
                     <td><?php echo e(round($prod->price,0)); ?></td>
                     <td><?php echo e($prod->bar_code); ?></td>
@@ -74,7 +74,7 @@
                             <div class="dropdown-content">
                                 <a onclick="show_discountprice_modal(
                                     '<?php echo e($prod->product_id); ?>',
-                                    '<?php echo e($prod->name); ?>',
+                                    '<?php echo e($prod->product_name); ?>',
                                     '<?php echo e($prod->price); ?>',
                                     '<?php echo e($prod->buying_price); ?>',
                                     '<?php echo e($prod->discount_price); ?>',
@@ -91,7 +91,7 @@
                                 </a>
 
                                 <?php if($prod->bar_code != ""): ?>
-                                <a onclick="printbarcode('<?php echo e($prod->product_id); ?>','<?php echo e($prod->name); ?>')">Print
+                                <a onclick="printbarcode('<?php echo e($prod->product_id); ?>','<?php echo e($prod->product_name); ?>')">Print
                                     Barcode</a>
                                 <?php endif; ?>
                             </div>
@@ -233,11 +233,9 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-
-            <form method="POST" action="<?php echo e(url('updateMoreInfo')); ?>">
+            <form method="POST" action="<?php echo e(url('/update_product')); ?>">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" id="productid" name="product_id" value="<?php echo e($product->product_id); ?>" />
-
                 <div class="modal-body">
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">
@@ -334,7 +332,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
